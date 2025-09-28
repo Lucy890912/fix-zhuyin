@@ -45,7 +45,6 @@ winget install Git.Git
 ## 開始使用
 
 ### 1. Clone 專案
-```bash
 git clone https://github.com/Lucy890912/fix-zhuyin.git
 cd fix-zhuyin
 ### 2. 安裝依賴
@@ -57,8 +56,6 @@ npm run tauri dev
 npm run tauri build
 
 🎹 使用方式
-
-
 
 1.在任何地方誤打英文鍵序
 2.切換到 中文注音輸入法
