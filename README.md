@@ -18,10 +18,27 @@
 
 ## 🛠 開發環境
 
-- [Tauri 2](https://tauri.app/) (Rust + TypeScript)
-- Rust 1.75+
-- Node.js 18+ / npm
-- Windows / macOS / Linux
+開發環境準備（Windows 10/11）
+```bash
+#安裝 Visual Studio 2022 Build Tools（選擇 C++ toolset）
+#PowerShell
+winget install --id Microsoft.VisualStudio.2022.BuildTools -e
+### 重開機
+
+#安裝 Rust（rustup，Stable）
+winget install Rustlang.Rustup
+rustup default stable-x86_64-pc-windows-msvc
+rustup update
+
+#安裝 Node.js LTS（給前端與 Tauri CLI）
+winget install OpenJS.NodeJS.LTS
+
+#安裝 CMake（用來編 librime）
+winget install Kitware.CMake
+
+#Git（之後抓專案 會用）
+winget install Git.Git
+
 
 ---
 
