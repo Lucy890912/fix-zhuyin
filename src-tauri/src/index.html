@@ -1,0 +1,40 @@
+<body>
+  <div id="app"></div>
+
+  <!-- 候選浮窗 -->
+  <div id="candidate-popup" style="
+    position: fixed;
+    left: 24px; top: 24px;
+    z-index: 9999;
+    background: #111; color: #fff;
+    padding: 8px 10px; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans TC', sans-serif;
+    font-size: 14px; display: none; min-width: 220px;">
+    <div id="cand-title" style="opacity:.7;margin-bottom:4px;"></div>
+    <div id="cand-list"></div>
+    <div style="opacity:.6;margin-top:6px;font-size:12px">↑↓/1-5 選擇 · Enter確定 · Esc關閉</div>
+  </div>
+    <!-- IME 提醒 Toast -->
+    <div id="ime-hint" style="
+    position: fixed; right: 16px; bottom: 16px; z-index: 9999;
+    max-width: 420px; background: rgba(20,20,20,.96); color: #fff;
+    border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    display: none; font-family: system-ui, -apple-system, 'Noto Sans TC', Segoe UI, Roboto, sans-serif; font-size: 14px;">
+    <div style="display:flex; gap:10px; align-items:flex-start;">
+        <div style="font-weight:600; margin-top:1px;">提示</div>
+        <div style="opacity:.95;">
+        使用前請先<b>手動切換到「中文注音」輸入法</b>，再反白並按熱鍵重打鍵序。
+        </div>
+        <button id="ime-hint-close" style="
+        margin-left:auto; border:none; background:#2a85ff; color:#fff; cursor:pointer;
+        padding:4px 8px; border-radius:8px; font-size:12px;">我知道了</button>
+    </div>
+    <div style="margin-top:6px; opacity:.75; font-size:12px;">
+        建議預設熱鍵：<code>Ctrl + ;</code>（可在設定中更改）
+    </div>
+    </div>
+
+
+
+</body>
