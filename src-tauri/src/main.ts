@@ -1,99 +1,47 @@
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-type Payload = {
-  origin: string;
-  items: string[];
-  position: { x: number; y: number } | null;
+type Settings = { hotkey: { ctrl: boolean; shift: boolean; alt: boolean; code: string } };
+
+const el = {
+  panel: document.getElementById("settings") as HTMLDivElement,
+  ctrl: document.getElementById("hk-ctrl") as HTMLInputElement,
+  shift: document.getElementById("hk-shift") as HTMLInputElement,
+  alt: document.getElementById("hk-alt") as HTMLInputElement,
+  code: document.getElementById("hk-code") as HTMLSelectElement,
+  save: document.getElementById("save-hk") as HTMLButtonElement,
+  close: document.getElementById("close-settings") as HTMLButtonElement,
+  ok: document.getElementById("save-ok") as HTMLDivElement,
 };
 
-let popup = document.getElementById("candidate-popup")!;
-let candTitle = document.getElementById("cand-title")!;
-let candList = document.getElementById("cand-list")!;
-let visible = false;
-let selIndex = 0;
-let items: string[] = [];
+function openPanel() { el.panel.style.display = "block"; el.ok.style.display = "none"; }
+function closePanel() { el.panel.style.display = "none"; }
 
-function render() {
-  candList!.innerHTML = items
-    .map((it, i) => {
-      const active = i === selIndex ? "background:#2a85ff;color:#fff;" : "background:#222;";
-      return `<div data-idx="${i}" style="padding:6px 8px;border-radius:8px;margin:2px 0;cursor:pointer;${active}">
-        <b style="opacity:.8;margin-right:6px">${i + 1}.</b> ${it}
-      </div>`;
-    })
-    .join("");
-  popup.style.display = "block";
-  visible = true;
+async function loadSettings() {
+  const s = (await invoke("get_settings")) as Settings;
+  el.ctrl.checked = s.hotkey.ctrl;
+  el.shift.checked = s.hotkey.shift;
+  el.alt.checked = s.hotkey.alt;
+  el.code.value = s.hotkey.code;
+}
+async function saveSettings() {
+  const s: Settings = {
+    hotkey: { ctrl: el.ctrl.checked, shift: el.shift.checked, alt: el.alt.checked, code: el.code.value }
+  };
+  await invoke("set_settings", { newSettings: s });
+  el.ok.style.display = "block";
 }
 
-function hide() {
-  popup.style.display = "none";
-  visible = false;
-}
+el.save?.addEventListener("click", saveSettings);
+el.close?.addEventListener("click", closePanel);
 
-listen<Payload>("show-candidates", (ev) => {
-  items = ev.payload.items?.slice(0, 5) || [];
-  selIndex = 0;
-  candTitle!.textContent = `修復：${ev.payload.origin}`;
-  // TODO: 利用 ev.payload.position 定位到游標附近（暫時固定位置）
-  render();
-});
+// 系統匣「設定」→ 打開面板
+listen("open-settings", () => { openPanel(); loadSettings(); });
 
-// 鍵盤操作
+// 你也可以加個鍵盤快捷鍵打開面板（例如 Ctrl+,）
 window.addEventListener("keydown", (e) => {
-  if (!visible) return;
-
-  if (e.key === "Escape") {
-    hide();
-  } else if (e.key === "ArrowDown") {
-    selIndex = (selIndex + 1) % items.length;
-    render();
-  } else if (e.key === "ArrowUp") {
-    selIndex = (selIndex - 1 + items.length) % items.length;
-    render();
-  } else if (/^[1-5]$/.test(e.key)) {
-    const idx = parseInt(e.key, 10) - 1;
-    if (idx < items.length) {
-      selIndex = idx;
-      // 這裡可以發 RPC 要求 Rust 上屏該候選
-      chooseCurrent();
-    }
-  } else if (e.key === "Enter") {
-    chooseCurrent();
-  }
+  if (e.ctrlKey && e.key === ",") { openPanel(); loadSettings(); }
 });
 
-async function chooseCurrent() {
-  const chosen = items[selIndex];
-  hide();
-  await invoke("replace_with", { text: chosen });
-}
-
-// ===== IME 提醒：啟動顯示一次、可關閉 =====
-const imeHintEl = document.getElementById("ime-hint") as HTMLDivElement | null;
-const imeHintCloseBtn = document.getElementById("ime-hint-close") as HTMLButtonElement | null;
-
-function showImeHint() {
-  if (!imeHintEl) return;
-  imeHintEl.style.display = "block";
-}
-function hideImeHint(permanent = true) {
-  if (!imeHintEl) return;
-  imeHintEl.style.display = "none";
-  if (permanent) localStorage.setItem("hideImeHint", "1");
-}
-
-// 啟動時：若未被關閉過 → 顯示
-if (localStorage.getItem("hideImeHint") !== "1") {
-  showImeHint();
-}
-imeHintCloseBtn?.addEventListener("click", () => hideImeHint(true));
-
-// （可選）當後端在按下熱鍵時想再提醒 2 秒：監聽事件
-listen("show-ime-hint", () => {
-  if (!imeHintEl) return;
-  // 即使曾經「永久關閉」，這個提示也只閃一次（不寫入 localStorage）
-  showImeHint();
-  setTimeout(() => hideImeHint(false), 2000);
-});
+// 啟動時讀一次（可選）
+loadSettings();
