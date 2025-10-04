@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fix Zhuyin 設定</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        color: #fff;
+        font-family: "Microsoft JhengHei", sans-serif;
+        padding: 20px;
+      }
+      h2 { margin-top: 0; }
+      label { display: inline-block; margin-right: 12px; }
+      select, button {
+        margin-top: 8px;
+        width: 100%;
+        padding: 6px;
+        border-radius: 8px;
+        border: none;
+      }
+      button {
+        background: #2a85ff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover { background: #4b9aff; }
+    </style>
+  </head>
+  <body>
+    <h2>Fix Zhuyin 設定</h2>
+    <p style="opacity:.8;">請先手動切換至中文注音再按熱鍵轉換。</p>
+
+    <div style="margin:12px 0;">
+      <label><input type="checkbox" id="hk-ctrl"> Ctrl</label>
+      <label><input type="checkbox" id="hk-shift"> Shift</label>
+      <label><input type="checkbox" id="hk-alt"> Alt</label>
+    </div>
+
+    <div>
+      <label>鍵位（Code）</label>
+      <select id="hk-code">
+        <option>Semicolon</option>
+        <option>Backquote</option>
+        <option>Backslash</option>
+        <option>J</option>
+        <option>K</option>
+        <option>Space</option>
+      </select>
+    </div>
+
+    <button id="save">儲存熱鍵</button>
+    <div id="ok" style="margin-top:10px;color:#7ef57e;display:none;">✅ 已更新熱鍵！</div>
+
+    <script type="module">
+      import { invoke } from "@tauri-apps/api/core";
+
+      const el = {
+        ctrl: document.getElementById("hk-ctrl"),
+        shift: document.getElementById("hk-shift"),
+        alt: document.getElementById("hk-alt"),
+        code: document.getElementById("hk-code"),
+        save: document.getElementById("save"),
+        ok: document.getElementById("ok"),
+      };
+
+      // 載入現有設定
+      invoke("get_settings").then((s) => {
+        if (s) {
+          el.ctrl.checked = s.ctrl;
+          //el.shift.checked = s.shift;
+          //el.alt.checked = s.alt;
+          el.code.value = s.code;
+        }
+      });
+
+      // 儲存設定
+      el.save.onclick = async () => {
+        await invoke("set_settings", {
+          newSettings: {
+            ctrl: el.ctrl.checked,
+            //shift: el.shift.checked,
+            //alt: el.alt.checked,
+            code: el.code.value,
+          },
+        });
+        el.ok.style.display = "block";
+        setTimeout(() => (el.ok.style.display = "none"), 1500);
+      };
+    </script>
+  </body>
+</html>
