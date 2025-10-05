@@ -101,11 +101,23 @@ pub fn main() {
                     .menu(&menu)
                     .on_menu_event(|app, ev| match ev.id().as_ref() {
                                         "open_settings" => {
-                                            if let Some(win) = app.get_webview_window("main") {
-                                                let _ = win.show();
-                                                let _ = win.set_focus();
-                                            }
+                                        // 嘗試取得 main 視窗
+                                        if let Some(win) = app.get_webview_window("main") {
+                                            let _ = win.show();
+                                            let _ = win.set_skip_taskbar(false); // ✅ 讓它重新出現在任務列
+                                            let _ = win.set_focus();
+                                        } else {
+                                            // ✅ 如果視窗真的不在了，就重新建立一個新視窗
+                                            use tauri::{WebviewUrl, WebviewWindowBuilder};
+                                            let _ = WebviewWindowBuilder::new(
+                                                app,
+                                                "main",
+                                                WebviewUrl::App("index.html".into())
+                                            )
+                                            .title("Fix Zhuyin")
+                                            .build();
                                         }
+                                    }
                                         "quit_app" => {
                                             std::process::exit(0);
                                         }
@@ -114,7 +126,7 @@ pub fn main() {
                                     .build(app)?;
                 // --- 攔截關閉事件，只隱藏 ---
                 if let Some(window) = app.get_webview_window("main") {
-                    let app_handle = app.handle().clone(); // ✅ 這裡 clone()
+                    let app_handle = app.handle().clone(); //  這裡 clone()
                     window.on_window_event(move |event| {
                         if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                             api.prevent_close();
