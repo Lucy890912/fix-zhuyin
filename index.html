@@ -52,22 +52,23 @@
   </head>
   <body>
     <div id="settings">
-      <h2>Fix Zhuyin 熱鍵設定</h2>
-      <p style="opacity:.8;font-size:14px;">請手動切換到中文注音後使用熱鍵</p>
+      <h2>Fix Zhuyin 快捷鍵設定</h2>
+      <p style="opacity:.8;font-size:14px;">請手動切換到中文注音後使用快捷鍵</p>
 
       <div style="margin-top:20px;text-align:left;">
-        <label>熱鍵：</label>
+        <label>快捷鍵：</label>
         <select id="hk-code">
-          <option value="KeyJ">Ctrl + J</option>
           <option value="Semicolon">Ctrl + ;</option>
+          <option value="KeyJ">Ctrl + J</option>
           <option value="KeyK">Ctrl + K</option>
+          <option value="KeyL">Ctrl + L</option>
         </select>
       </div>
 
       <button id="save-hk">儲存設定</button>
-      <div id="save-ok">✅ 已更新熱鍵！</div>
+      <div id="save-ok">已更新快捷鍵！</div>
     </div>
 
-    <script type="module" src="main.ts"></script>
+    <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
