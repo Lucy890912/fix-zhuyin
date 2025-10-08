@@ -6,8 +6,9 @@ use tauri::tray::TrayIconBuilder;
 use tauri::Manager;
 use tauri::image::Image;
 use image::{ImageReader, RgbaImage, Rgba};
-use std::io::Cursor;
 use image::GenericImageView;
+use std::io::Cursor;
+use tauri_plugin_autostart::ManagerExt;
 
 mod os;
 mod conv;
@@ -18,7 +19,7 @@ mod hotkey;
 
 /// 若載入失敗，自動使用灰色圓形 fallback 圖示
 fn load_tray_icon() -> Image<'static> {
-    // 11. 內嵌你的圖示檔案 (.ico 或 .png 都可)
+    // 1. 內嵌你的圖示檔案 (.ico 或 .png 都可)
     let bytes = include_bytes!("../icons/icon.ico");
 
     // 2️. 嘗試解析圖片格式
@@ -35,9 +36,9 @@ fn load_tray_icon() -> Image<'static> {
             Image::new_owned(rgba.into_raw(), width, height)
         }
         Err(e) => {
-            println!("⚠️ 圖示載入失敗，使用 fallback icon: {e}");
+            println!(" 圖示載入失敗，使用 fallback icon: {e}");
 
-            // 3️⃣ 建立灰色圓形 fallback 圖示 (32x32)
+            // 3️. 建立灰色圓形 fallback 圖示 (32x32)
             let size = 32;
             let mut rgba = RgbaImage::new(size, size);
 
@@ -134,6 +135,32 @@ pub fn main() {
         .setup(|app| {
             #[cfg(desktop)]
             {
+                // ---------- 防止開發模式誤註冊開機啟動 ----------
+                #[cfg(debug_assertions)]
+                {
+                    println!("⚠️ Debug 模式中禁用 autostart 註冊");
+                    let autostart = app.autolaunch();
+                    let _ = autostart.disable();
+                }
+
+                #[cfg(not(debug_assertions))]
+                {
+                    use tauri_plugin_autostart::ManagerExt;
+                    let autostart = app.autolaunch();
+                    if !autostart.is_enabled().unwrap_or(false) {
+                        let _ = autostart.enable();
+                        println!("✅ 自動啟動已啟用");
+                    }
+                }
+                // ------------------------------------------------
+                let autostart = app.autolaunch();
+                if autostart.is_enabled().unwrap_or(false) {
+                    // 延遲啟動，避免開機過早導致連線失敗
+                    std::thread::spawn(|| {
+                        std::thread::sleep(std::time::Duration::from_secs(3));
+                        //println!("🕓 自動啟動延遲結束，開始初始化 UI");
+                    });
+                }
                 //  建立「設定」菜單項目
                 let open = MenuItem::with_id(app, "open_settings", "設定", true, None::<&str>)?;
                 let quit = MenuItem::with_id(app, "quit_app", "關閉程式", true, None::<&str>)?;
@@ -141,7 +168,7 @@ pub fn main() {
 
                 let icon = load_tray_icon();
 
-                let tray = TrayIconBuilder::new()
+                let _tray = TrayIconBuilder::new()
                     .icon(icon)
                     .tooltip("Zhuyin Fixer")
                     .menu(&menu)
@@ -194,12 +221,6 @@ pub fn main() {
                             }
                         }
                     });
-                }
-                use tauri_plugin_autostart::ManagerExt;
-                let autostart = app.autolaunch();
-                if !autostart.is_enabled().unwrap_or(false) {
-                    let _ = autostart.enable();
-                    println!(" 自動啟動已啟用");
                 }
             }
 
